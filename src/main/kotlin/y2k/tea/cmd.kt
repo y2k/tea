@@ -39,6 +39,9 @@ interface Sub<out T> {
     fun detach()
 
     companion object {
+
+        fun <T> empty(): Sub<T> = batch()
+
         fun <T> ofFunc(f: ((T) -> Unit) -> Unit, dispose: () -> Unit): Sub<T> =
             object : Sub<T> {
                 override fun attach(dispatch: (T) -> Unit) = f(dispatch)
