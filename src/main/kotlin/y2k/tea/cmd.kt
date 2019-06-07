@@ -2,36 +2,20 @@
 
 package y2k.tea
 
-interface Cmd<out T> {
-
-    suspend fun execute(dispatch: (T) -> Unit)
+data class Cmd<out T>(val dispatchers: List<Dispatch<T>>) {
 
     companion object {
-
-        fun <T> ofFunc(f: suspend () -> T): Cmd<T> =
-            object : Cmd<T> {
-                override suspend fun execute(dispatch: (T) -> Unit) {
-                    dispatch(f())
-                }
-            }
-
-        fun <T> ofAction(f: suspend () -> Unit): Cmd<T> =
-            object : Cmd<T> {
-                override suspend fun execute(dispatch: (T) -> Unit) {
-                    f()
-                }
-            }
-
-        fun <T> batch(vararg xs: Cmd<T>): Cmd<T> =
-            object : Cmd<T> {
-                override suspend fun execute(dispatch: (T) -> Unit) =
-                    xs.forEach { it.execute(dispatch) }
-            }
-
-        fun <T> none(): Cmd<T> = ofAction { }
+        fun <T> none(): Cmd<T> = Cmd(emptyList())
+        fun <T> batch(vararg xs: Cmd<T>): Cmd<T> = Cmd(xs.flatMap { it.dispatchers })
         fun <T> ofMsg(msg: T): Cmd<T> = ofFunc { msg }
+        fun <T> ofFunc(f: suspend () -> T): Cmd<T> =
+            Cmd(listOf { dispatch -> dispatch(f()) })
+        fun ofAction(f: suspend () -> Unit): Cmd<Nothing> =
+            Cmd(listOf { _ -> f() })
     }
 }
+
+typealias Dispatch<T> = suspend ((T) -> Unit) -> Unit
 
 interface Sub<out T> {
 

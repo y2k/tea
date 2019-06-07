@@ -5,10 +5,9 @@ package y2k.tea
 import java.io.Closeable
 
 fun <T, R> Cmd<T>.map(f: (T) -> R): Cmd<R> =
-    object : Cmd<R> {
-        override suspend fun execute(dispatch: (R) -> Unit) =
-            this@map.execute { dispatch(f(it)) }
-    }
+    Cmd(dispatchers.map<Dispatch<T>, Dispatch<R>> { old ->
+        { d -> old { x -> d(f(x)) } }
+    })
 
 fun <T, R> Sub<T>.map(f: (T) -> R): Sub<R> =
     object : Sub<R> {

@@ -14,7 +14,7 @@ class TeaRuntime<Model, Msg>(
         view.view(model)
         this.model = model
         scheduler {
-            cmd.execute(::dispatch)
+            cmd.dispatchers.forEach { it(::dispatch) }
         }
 
         sub = component.sub()
@@ -31,7 +31,7 @@ class TeaRuntime<Model, Msg>(
         this.model = model
 
         scheduler {
-            cmd.execute(::dispatch)
+            cmd.dispatchers.forEach { it(::dispatch) }
         }
     }
 }
