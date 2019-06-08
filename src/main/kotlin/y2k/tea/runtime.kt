@@ -29,9 +29,10 @@ class TeaRuntime<Model, Msg>(
 
     fun dispatch(msg: Msg) {
         val (model, cmd) = component.update(model!!, msg)
-        if (compareModels && this.model == model) return
-        this.model = model
-        view.view(model)
+        if (!compareModels || this.model != model) {
+            this.model = model
+            view.view(model)
+        }
 
         scheduler {
             cmd.dispatchers.forEach { it(::dispatch) }
