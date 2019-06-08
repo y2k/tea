@@ -12,8 +12,8 @@ class TeaRuntime<Model, Msg>(
 
     fun attach() {
         val (model, cmd) = component.initialize()
-        view.view(model)
         this.model = model
+        view.view(model)
         scheduler {
             cmd.dispatchers.forEach { it(::dispatch) }
         }
