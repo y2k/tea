@@ -5,7 +5,8 @@ import java.io.Closeable
 class TeaRuntime<Model, Msg>(
     private val component: TeaComponent<Model, Msg>,
     private val view: TeaView<Model>,
-    private val scheduler: (suspend () -> Unit) -> Unit
+    private val scheduler: (suspend () -> Unit) -> Unit,
+    private val compareModels: Boolean = false
 ) {
     private var model: Model? = null
     private var closeSubs: Closeable? = null
@@ -28,8 +29,9 @@ class TeaRuntime<Model, Msg>(
 
     fun dispatch(msg: Msg) {
         val (model, cmd) = component.update(model!!, msg)
-        view.view(model)
+        if (compareModels && this.model == model) return
         this.model = model
+        view.view(model)
 
         scheduler {
             cmd.dispatchers.forEach { it(::dispatch) }
