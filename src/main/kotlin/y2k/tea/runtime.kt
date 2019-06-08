@@ -1,13 +1,14 @@
 package y2k.tea
 
+import java.io.Closeable
+
 class TeaRuntime<Model, Msg>(
     private val component: TeaComponent<Model, Msg>,
     private val view: TeaView<Model>,
     private val scheduler: (suspend () -> Unit) -> Unit
 ) {
-
     private var model: Model? = null
-    private var sub: Sub<Msg>? = null
+    private var closeSubs: Closeable? = null
 
     fun attach() {
         val (model, cmd) = component.initialize()
@@ -17,12 +18,12 @@ class TeaRuntime<Model, Msg>(
             cmd.dispatchers.forEach { it(::dispatch) }
         }
 
-        sub = component.sub()
-        sub?.attach(::dispatch)
+        closeSubs = component.sub().attach(::dispatch)
     }
 
     fun detach() {
-        sub?.detach()
+        closeSubs?.close()
+        closeSubs = null
     }
 
     fun dispatch(msg: Msg) {
