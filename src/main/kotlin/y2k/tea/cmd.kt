@@ -10,15 +10,15 @@ data class Cmd<out T>(val dispatchers: List<Dispatch<T>>) {
         fun <T> none(): Cmd<T> = Cmd(emptyList())
         fun <T> batch(vararg xs: Cmd<T>): Cmd<T> = Cmd(xs.flatMap { it.dispatchers })
         fun <T> ofMsg(msg: T): Cmd<T> = ofFunc { msg }
-        fun <T> ofFunc(f: suspend () -> T): Cmd<T> =
+        fun <T> ofFunc(f: () -> T): Cmd<T> =
             Cmd(listOf { dispatch -> dispatch(f()) })
 
-        fun ofAction(f: suspend () -> Unit): Cmd<Nothing> =
+        fun ofAction(f: () -> Unit): Cmd<Nothing> =
             Cmd(listOf { _ -> f() })
     }
 }
 
-typealias Dispatch<T> = suspend ((T) -> Unit) -> Unit
+typealias Dispatch<T> = ((T) -> Unit) -> Unit
 
 interface Sub<out T> {
 
